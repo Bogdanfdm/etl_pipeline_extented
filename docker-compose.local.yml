@@ -1,0 +1,48 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    volumes:
+      - ./data/postgres:/data
+    environment:
+      POSTGRES_USER : ${POSTGRES_USER}
+      POSTGRES_PASSWORD : ${POSTGRES_PASSWORD}
+      POSTGRES_DB : ${POSTGRES_DB}
+      POSTGRES_HOST : ${POSTGRES_HOST}
+      POSTGRES_PORT : ${POSTGRES_PORT}
+      POSTGRES_OUTSIDE_PORT : ${POSTGRES_OUTSIDE_PORT}
+    ports:
+      - ${POSTGRES_OUTSIDE_PORT}:${POSTGRES_PORT}
+    networks:
+      - fraud-detection-local-network
+
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle-db
+    restart: always
+    volumes: 
+      - ./data/oracle:/data
+    environment:
+      ORACLE_USER : ${ORACLE_USER}
+      ORACLE_PASSWORD : ${ORACLE_PASSWORD}
+      ORACLE_DB : ${ORACLE_DB}
+      ORACLE_HOST : ${ORACLE_HOST}
+      ORACLE_PORT : ${ORACLE_PORT}
+      ORACLE_OUTSIDE_PORT : ${ORACLE_OUTSIDE_PORT}
+    ports:
+      - ${ORACLE_OUTSIDE_PORT}:${ORACLE_PORT}
+    networks:
+      - fraud-detection-local-network
+
+
+  # redis:
+  #   image:
+# later add redis for caching
+
+
+
+networks:
+  fraud-detection-local-network:
+    driver: bridge

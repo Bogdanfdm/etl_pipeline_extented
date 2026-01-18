@@ -1,0 +1,13 @@
+.env
+.env/*
+.env/
+/data/*
+/data
+/data/
+.log
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
