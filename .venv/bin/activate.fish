@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /home/bodya/Desktop/projects/fraud-detection/.venv
+set -gx VIRTUAL_ENV /home/bodya/Desktop/projects/etl_pipeline_extented/.venv
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

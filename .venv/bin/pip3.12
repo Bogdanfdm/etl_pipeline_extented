@@ -1,4 +1,4 @@
-#!/home/bodya/Desktop/projects/fraud-detection/.venv/bin/python3
+#!/home/bodya/Desktop/projects/etl_pipeline_extented/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
