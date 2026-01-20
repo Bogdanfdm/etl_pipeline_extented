@@ -23,7 +23,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 path_csv = Path(__file__).resolve().parent.parent / 'data' / 'data_for_insert' / 'csv'
-
+logger.debug("path to csv files: %s", path_csv)
 ddb_con = ddb.connect()
 
 df_dicts = {}
@@ -32,7 +32,7 @@ def parse_csv_to_dict(csv_path: Path,
                       dict_tables_names_data: dict) -> dict:
     # parsing csv files to dfs using duckdb
     for csv in csv_path.glob('*.csv'):
-        logger.debug("working with %s", csv)
+        # logger.debug("working with %s", csv)
         
         df =ddb_con.execute(
             f"""
@@ -45,8 +45,6 @@ def parse_csv_to_dict(csv_path: Path,
     return dict_tables_names_data
 
 df_dicts_full = parse_csv_to_dict(csv_path=path_csv, dict_tables_names_data=df_dicts)
-
-logger.info("done this %s", df_dicts_full['common_player_info'])
 
 # записать каждый датафрейм в словарь, в котором будет ключ значение имя таблицы - сам датафрейм - done
 
@@ -70,33 +68,40 @@ df_to_parquet(dfs_dict = parse_csv_to_dict(path_csv, df_dicts),
 logger.info("its stil work!")
 
 
-schema_name = "nba_data"
+staging_schema_name = "staging"
 
 sql_schema_creation = f"""
-create schema if not exists {schema_name} authorization user;
+create schema if not exists {staging_schema_name};
 """
 
 logger.info("sql statement looks like: %s", sql_schema_creation)
 
-# Сейчас нужно разобрать модель данных, найти фк и пк, создать ддл и записать таблицы в бд
+# Add a staging layer to postgres for csv data 
 
-# sql_table_creation = """
-# create table if not exists 
-# """
+engine = create_engine(
+     f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_OUTSIDE_PORT}/{settings.POSTGRES_DB}"
+)
+logger.info("trying to run %s sql script", sql_schema_creation)
 
-# def create_table_sql(
-#           conn_str: CONN_DB_SETTINGS,
-#           sql_statement: str,
-#           table_dict: dict
-# ):
-#     conn = psycopg2.connect(
-#           database=conn_str.POSTGRES_DB,
-#           user = conn_str.POSTGRES_USER,
-#           password = conn_str.POSTGRES_PASSWORD,
-#           host=conn_str.POSTGRES_HOST,
-#           port = str(conn_str.POSTGRES_OUTSIDE_PORT)
-#      )
-#     conn.autocommit = True
-#     cursor = conn.cursor()
-#     for table_name, df in table_dict.itmes():
-         
+def staging_schema_tables_creation():
+    for csv_name, csv in df_dicts_full.items():
+
+        columns_sql = ",\n    ".join(
+             f'"{col}" TEXT'
+             for col in csv.columns
+        )
+
+        sql_statement_create_table = f"""
+        create table if not exists {staging_schema_name}."{csv_name}"(
+            {columns_sql}
+        )
+        """
+        # logger.debug("DDL:\n%s", sql_statement_create_table)
+
+        with engine.begin() as con:
+             con.execute(text(sql_statement_create_table))
+
+staging_schema_tables_creation()
+
+logger.info("Created staging schema in postgres: %s", staging_schema_name)
+
